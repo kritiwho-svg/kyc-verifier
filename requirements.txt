@@ -1,0 +1,9 @@
+numpy==1.26.4
+opencv-python==4.9.0.80
+Pillow==10.3.0
+easyocr==1.7.1
+tensorflow==2.16.1
+tf-keras==2.16.0
+deepface==0.0.92
+streamlit==1.35.0
+scikit-learn==1.4.2
