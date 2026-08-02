@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>KYC Verifier -- OCR + Face Match + Tamper Detection</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <div class="badge">ID</div>
+      <div>
+        <h1>Document KYC Verifier</h1>
+        <div class="subtitle">OCR extraction &middot; Face-match cross-check &middot; ELA tamper detection</div>
+      </div>
+    </header>
+
+    <form class="card" action="/verify" method="post" enctype="multipart/form-data">
+      <div class="grid2">
+        <div>
+          <div class="section-title">ID Document</div>
+          <label>Upload an ID image</label>
+          <input type="file" name="id_image" accept="image/*">
+          <div class="or-divider">— or use a bundled sample —</div>
+          <label>Sample ID</label>
+          <select name="id_sample">
+            <option value="{{ samples.id_genuine }}">Genuine mock Aadhaar</option>
+            <option value="{{ samples.id_tampered }}">Tampered mock Aadhaar (edited name field)</option>
+          </select>
+        </div>
+        <div>
+          <div class="section-title">Selfie</div>
+          <label>Upload a selfie image</label>
+          <input type="file" name="selfie_image" accept="image/*">
+          <div class="or-divider">— or use a bundled sample —</div>
+          <label>Sample selfie</label>
+          <select name="selfie_sample">
+            <option value="{{ samples.selfie_match }}">Matching selfie</option>
+            <option value="{{ samples.selfie_mismatch }}">Non-matching selfie</option>
+          </select>
+        </div>
+      </div>
+      <button class="primary" type="submit">Run KYC Verification</button>
+    </form>
+
+    <div class="footer-note">
+      All bundled sample images are 100% synthetic mock data generated for this demo --
+      no real government IDs or real people's photos are used. For the most convincing
+      live demo, upload a real photographed/scanned document and a real selfie: the face
+      matcher and ELA tamper detector are tuned for photographic content, not clean
+      vector-rendered mock graphics.
+    </div>
+  </div>
+</body>
+</html>

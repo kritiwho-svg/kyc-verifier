@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>KYC Verification Result</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <div class="badge">ID</div>
+      <div>
+        <h1>Verification Result</h1>
+        <div class="subtitle">Processed in {{ r.processing_time_sec }}s</div>
+      </div>
+    </header>
+
+    <div class="verdict-banner {{ 'verdict-approved' if r.overall_verdict == 'APPROVED' else 'verdict-rejected' }}">
+      <span>{{ r.overall_verdict }}</span>
+      <span style="font-size: 13px; font-weight: 400;">
+        {{ r.reasons|length }} finding(s)
+      </span>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Why</div>
+      <ul class="reasons">
+        {% for reason in r.reasons %}
+          <li>{{ reason }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Input images</div>
+      <div class="imgs-row">
+        <figure>
+          <img src="{{ r._id_image_rel }}" alt="ID document">
+          <figcaption>ID document</figcaption>
+        </figure>
+        <figure>
+          <img src="{{ r._selfie_image_rel }}" alt="Selfie">
+          <figcaption>Selfie</figcaption>
+        </figure>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <div class="section-title">OCR — Extracted Fields</div>
+        <table class="fields">
+          <tr><td class="k">Document type</td><td>{{ r.ocr.doc_type or '—' }}</td></tr>
+          <tr><td class="k">Name</td><td>{{ r.ocr.name or '—' }}</td></tr>
+          <tr><td class="k">Father's name</td><td>{{ r.ocr.father_name or '—' }}</td></tr>
+          <tr><td class="k">Date of birth</td><td>{{ r.ocr.dob or '—' }}</td></tr>
+          <tr><td class="k">Gender</td><td>{{ r.ocr.gender or '—' }}</td></tr>
+          <tr><td class="k">ID number</td><td>{{ r.ocr.id_number or '—' }}</td></tr>
+          <tr><td class="k">Extraction confidence</td><td>{{ ((r.ocr._ocr_confidence_hint or 0.9) * 100) | round(0) }}%%</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Face Match</div>
+        {% set fm = r.face_match %}
+        <p>
+          <span class="pill {{ 'pill-green' if fm.verdict == 'MATCH' else ('pill-amber' if fm.verdict == 'NO_FACE_DETECTED' else 'pill-red') }}">
+            {{ fm.verdict }}
+          </span>
+        </p>
+        {% if fm.similarity is not none %}
+          <div>Similarity score: {{ (fm.similarity * 100) | round(1) }}% (threshold {{ (fm.threshold * 100) | round(0) }}%)</div>
+          <div class="score-bar-track">
+            <div class="score-bar-fill" style="width: {{ (fm.similarity * 100) | round(1) }}%; background: {{ '#38c172' if fm.match else '#ef5a6f' }};"></div>
+          </div>
+        {% endif %}
+        <div style="margin-top: 10px; font-size: 13px; color: var(--muted);">
+          Backend: {{ fm.backend }}
+          {% if fm.low_confidence_detection %}<br>⚠ Low-confidence face detection (fell back to center-crop) -- use a clear, front-facing real photo for best accuracy.{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Tamper Check (Error Level Analysis)</div>
+      {% set tc = r.tamper_check %}
+      <p>
+        <span class="pill {{ 'pill-green' if tc.verdict == 'NO_TAMPERING_DETECTED' else ('pill-amber' if tc.verdict == 'REVIEW_RECOMMENDED' else 'pill-red') }}">
+          {{ tc.verdict }}
+        </span>
+        &nbsp; Tamper score: {{ tc.tamper_score }}/100 &middot; {{ tc.num_flagged_regions }} flagged region(s)
+      </p>
+      <div class="imgs-row">
+        <figure>
+          <img src="{{ r._overlay_image_rel }}" alt="Tamper overlay">
+          <figcaption>Flagged regions overlay</figcaption>
+        </figure>
+        <figure>
+          <img src="{{ r._ela_image_rel }}" alt="ELA heatmap">
+          <figcaption>ELA error-level heatmap</figcaption>
+        </figure>
+      </div>
+      {% if tc.note %}<div class="footer-note">{{ tc.note }}</div>{% endif %}
+    </div>
+
+    <a class="back" href="/">&larr; Run another verification</a>
+  </div>
+</body>
+</html>
